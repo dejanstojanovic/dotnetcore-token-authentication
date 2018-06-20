@@ -78,12 +78,7 @@ namespace Sample.Core.Identity.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseHsts();
-            }
 
-            app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

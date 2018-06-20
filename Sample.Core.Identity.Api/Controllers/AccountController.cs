@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Sample.Core.Identity.Api.Models;
 using Sample.Core.Identity.Data.Enities;
 
 namespace Sample.Core.Identity.Api.Controllers
@@ -40,21 +45,22 @@ namespace Sample.Core.Identity.Api.Controllers
 
         [HttpPost]
         [Route("token")]
-        public async Task<IActionResult> CreateToken([FromBody] Credentials credentials)
+        public async Task<IActionResult> CreateToken([FromBody] LoginModel loginModel)
         {
-
-
-            var loginResult = await signInManager.PasswordSignInAsync(credentials.Username, credentials.Password, isPersistent: false, lockoutOnFailure: false);
-
-            if (!loginResult.Succeeded)
+            if (ModelState.IsValid)
             {
-                return BadRequest();
+                var loginResult = await signInManager.PasswordSignInAsync(loginModel.Username, loginModel.Password, isPersistent: false, lockoutOnFailure: false);
+
+                if (!loginResult.Succeeded)
+                {
+                    return BadRequest();
+                }
+
+                var user = await userManager.FindByNameAsync(loginModel.Username);
+
+                return Ok(GetToken(user));
             }
-
-
-            var user = await userManager.FindByNameAsync(credentials.Username);
-
-            return Ok(GetToken(user));
+            return BadRequest(ModelState);
 
         }
 
@@ -68,29 +74,41 @@ namespace Sample.Core.Identity.Api.Controllers
                 User.Claims.Where(c => c.Properties.ContainsKey("unique_name")).Select(c => c.Value).FirstOrDefault()
                 );
             return Ok(GetToken(user));
+
         }
 
 
         [HttpPost]
         [Route("register")]
-        public async Task<IActionResult> Register([FromBody] Credentials credentials)
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterModel registerModel)
         {
-            var user = new IdentityUser
+            if (ModelState.IsValid)
             {
-                UserName = credentials.Username
-            };
+                var user = new ApplicationUser
+                {
+                    //TODO: Use Automapper instaed of manual binding
 
-            var identityResult = await this.userManager.CreateAsync(user, credentials.Password);
-            if (identityResult.Succeeded)
-            {
-                await signInManager.SignInAsync(user, isPersistent: false);
-                return Ok(GetToken(user));
-            }
-            else
-            {
-                return BadRequest(identityResult.Errors);
-            }
+                    UserName = registerModel.Username,
+                    FirstName = registerModel.FirstName,
+                    LastName = registerModel.LastName,
+                    Email = registerModel.Email
+                };
 
+                var identityResult = await this.userManager.CreateAsync(user, registerModel.Password);
+                if (identityResult.Succeeded)
+                {
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return Ok(GetToken(user));
+                }
+                else
+                {
+                    return BadRequest(identityResult.Errors);
+                }
+            }
+                return BadRequest(ModelState);
+            
+            
         }
 
         private String GetToken(IdentityUser user)
@@ -99,24 +117,26 @@ namespace Sample.Core.Identity.Api.Controllers
 
             var claims = new Claim[]
             {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                    new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, utcNow.ToString())
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                        new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim(JwtRegisteredClaimNames.Iat, utcNow.ToString())
             };
 
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration["Tokens:Key"]));
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration.GetValue<String>("Tokens:Key")));
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
             var jwt = new JwtSecurityToken(
                 signingCredentials: signingCredentials,
                 claims: claims,
                 notBefore: utcNow,
-                expires: utcNow.AddSeconds(this.configuration.Get<int>("Tokens:Lifetime")),
-                audience: this.configuration["Tokens:Audience"],
-                issuer: this.configuration["Tokens:Issuer"]
+                expires: utcNow.AddSeconds(this.configuration.GetValue<int>("Tokens:Lifetime")),
+                audience: this.configuration.GetValue<String>("Tokens:Audience"),
+                issuer: this.configuration.GetValue<String>("Tokens:Issuer")
                 );
 
             return new JwtSecurityTokenHandler().WriteToken(jwt);
+
+
         }
 
 
