@@ -133,11 +133,7 @@ namespace Sample.Core.Identity.Api.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(jwt);
 
-
         }
-
-
-
 
     }
 }
