@@ -49,8 +49,6 @@ namespace Sample.Core.Identity.Asymetric.Api
             #endregion
 
             #region Add Authentication
-            //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]));
-
             RsaSecurityKey signingKey;
 
             using (RSA publicRsa = RSA.Create())
@@ -82,7 +80,6 @@ namespace Sample.Core.Identity.Asymetric.Api
                 };
             });
             #endregion
-
 
             services.AddMvc();
         }

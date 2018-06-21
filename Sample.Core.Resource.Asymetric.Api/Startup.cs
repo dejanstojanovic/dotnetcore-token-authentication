@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Sample.Core.Common.Extensions;
 
 namespace Sample.Core.Resource.Asymetric.Api
 {
@@ -39,7 +42,18 @@ namespace Sample.Core.Resource.Asymetric.Api
             #endregion
 
             #region Add Authentication
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]));
+            #region Add Authentication
+            RsaSecurityKey signingKey;
+
+            using (RSA publicRsa = RSA.Create())
+            {
+                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+                                "Keys",
+                                 this.Configuration.GetValue<String>("Tokens:PublicKey")
+                                 ));
+                signingKey = new RsaSecurityKey(publicRsa);
+            }
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,6 +73,7 @@ namespace Sample.Core.Resource.Asymetric.Api
                     ValidateIssuerSigningKey = true
                 };
             });
+            #endregion
             #endregion
 
             services.AddMvc();
