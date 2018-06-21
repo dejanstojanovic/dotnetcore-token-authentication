@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Sample.Core.Common.Extensions;
 using Sample.Core.Identity.Data.DbContexts;
 using Sample.Core.Identity.Data.Enities;
 
@@ -45,7 +49,19 @@ namespace Sample.Core.Identity.Asymetric.Api
             #endregion
 
             #region Add Authentication
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]));
+            //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]));
+
+            RsaSecurityKey signingKey;
+
+            using (RSA publicRsa = RSA.Create())
+            {
+                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+                                "Keys",
+                                 this.Configuration.GetValue<String>("Tokens:PublicKey")
+                                 ));
+                signingKey = new RsaSecurityKey(publicRsa);
+            }
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

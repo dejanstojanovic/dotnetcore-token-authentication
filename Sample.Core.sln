@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.Core.Identity.Asymet
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.Core.Resource.Asymetric.Api", "Sample.Core.Resource.Asymetric.Api\Sample.Core.Resource.Asymetric.Api.csproj", "{B2F88436-E252-4633-ADB6-A6A6ABEDCF6E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Core.Common", "Sample.Core.Common\Sample.Core.Common.csproj", "{901D28A9-B5FA-4118-B6E5-E8D5D3209FA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{B2F88436-E252-4633-ADB6-A6A6ABEDCF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2F88436-E252-4633-ADB6-A6A6ABEDCF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2F88436-E252-4633-ADB6-A6A6ABEDCF6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{901D28A9-B5FA-4118-B6E5-E8D5D3209FA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{901D28A9-B5FA-4118-B6E5-E8D5D3209FA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{901D28A9-B5FA-4118-B6E5-E8D5D3209FA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{901D28A9-B5FA-4118-B6E5-E8D5D3209FA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sample.Core.Common\Sample.Core.Common.csproj" />
     <ProjectReference Include="..\Sample.Core.Identity.Data\Sample.Core.Identity.Data.csproj" />
   </ItemGroup>
 
