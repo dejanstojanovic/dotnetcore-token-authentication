@@ -42,7 +42,7 @@ namespace Sample.Core.Resource.Asymetric.Api
             #endregion
 
             #region Add Authentication
-            #region Add Authentication
+
             RsaSecurityKey signingKey;
 
             using (RSA publicRsa = RSA.Create())
@@ -73,7 +73,6 @@ namespace Sample.Core.Resource.Asymetric.Api
                     ValidateIssuerSigningKey = true
                 };
             });
-            #endregion
             #endregion
 
             services.AddMvc();
