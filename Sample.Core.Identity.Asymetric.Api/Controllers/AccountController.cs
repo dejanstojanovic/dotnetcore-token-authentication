@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +27,7 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
         readonly SignInManager<ApplicationUser> signInManager;
         readonly IConfiguration configuration;
         readonly ILogger<AccountController> logger;
-
+        private object _settings;
 
         public AccountController(
            UserManager<ApplicationUser> userManager,
@@ -103,14 +105,41 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
                     return BadRequest(identityResult.Errors);
                 }
             }
-                return BadRequest(ModelState);
-            
-            
+            return BadRequest(ModelState);
+
+
         }
 
         private String GetToken(IdentityUser user)
         {
             var utcNow = DateTime.UtcNow;
+
+            RsaSecurityKey rsaSignKey;
+
+            using (RSA publicRsa = RSA.Create())
+            {
+                var publicKeyXml = System.IO.File.ReadAllText(
+                    Path.Combine(Directory.GetCurrentDirectory(),
+                                 this.configuration.GetValue<String>("Tokens:PublicKey")
+                                 )
+                    );
+                publicRsa.FromXmlString(publicKeyXml);
+                rsaSignKey = new RsaSecurityKey(publicRsa);
+            }
+
+            SigningCredentials rsaSigningCredentials;
+
+            using (RSA privateRsa = RSA.Create())
+            {
+                var privateKeyXml = System.IO.File.ReadAllText(
+                    Path.Combine(Directory.GetCurrentDirectory(),
+                                 this.configuration.GetValue<String>("Tokens:PrivateKey")
+                                 )
+                    );
+                privateRsa.FromXmlString(privateKeyXml);
+                var privateKey = new RsaSecurityKey(privateRsa);
+                rsaSigningCredentials = new SigningCredentials(privateKey, SecurityAlgorithms.RsaSha256);
+            }
 
             var claims = new Claim[]
             {
@@ -120,8 +149,9 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
                         new Claim(JwtRegisteredClaimNames.Iat, utcNow.ToString())
             };
 
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration.GetValue<String>("Tokens:Key")));
-            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration.GetValue<String>("Tokens:Key")));
+            //var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var signingCredentials = new SigningCredentials(rsaSignKey, SecurityAlgorithms.HmacSha256);
             var jwt = new JwtSecurityToken(
                 signingCredentials: signingCredentials,
                 claims: claims,
