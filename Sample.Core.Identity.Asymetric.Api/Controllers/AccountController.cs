@@ -116,13 +116,13 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
 
 
 
-            using (RSA publicRsa = RSA.Create())
-            {
-                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-                                 "Keys",
-                                 this.configuration.GetValue<String>("Tokens:PublicKey")
-                                 ));
-                RsaSecurityKey rsaSignKey = new RsaSecurityKey(publicRsa);
+            //using (RSA publicRsa = RSA.Create())
+            //{
+            //    publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+            //                     "Keys",
+            //                     this.configuration.GetValue<String>("Tokens:PublicKey")
+            //                     ));
+            //    RsaSecurityKey rsaSignKey = new RsaSecurityKey(publicRsa);
 
 
                 using (RSA privateRsa = RSA.Create())
@@ -156,7 +156,7 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
             }
             }
 
-        }
+        //}
 
     }
 }
