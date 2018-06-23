@@ -114,26 +114,15 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
         {
             var utcNow = DateTime.UtcNow;
 
+            using (RSA privateRsa = RSA.Create())
+            {
+                privateRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+                                "Keys",
+                                 this.configuration.GetValue<String>("Tokens:PrivateKey")
+                                 ));
+                var privateKey = new RsaSecurityKey(privateRsa);
+                SigningCredentials signingCredentials = new SigningCredentials(privateKey, SecurityAlgorithms.RsaSha256);
 
-
-            //using (RSA publicRsa = RSA.Create())
-            //{
-            //    publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-            //                     "Keys",
-            //                     this.configuration.GetValue<String>("Tokens:PublicKey")
-            //                     ));
-            //    RsaSecurityKey rsaSignKey = new RsaSecurityKey(publicRsa);
-
-
-                using (RSA privateRsa = RSA.Create())
-                {
-                    privateRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-                                    "Keys",
-                                     this.configuration.GetValue<String>("Tokens:PrivateKey")
-                                     ));
-                    var privateKey = new RsaSecurityKey(privateRsa);
-                    SigningCredentials signingCredentials = new SigningCredentials(privateKey, SecurityAlgorithms.RsaSha256);
-                
 
                 var claims = new Claim[]
                 {
@@ -154,9 +143,8 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
 
                 return new JwtSecurityTokenHandler().WriteToken(jwt);
             }
-            }
+        }
 
-        //}
 
     }
 }
