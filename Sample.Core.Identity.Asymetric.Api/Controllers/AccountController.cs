@@ -68,11 +68,19 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
         [Route("refreshtoken")]
         public async Task<IActionResult> RefreshToken()
         {
-            var user = await userManager.FindByNameAsync(
-                User.Identity.Name ??
-                User.Claims.Where(c => c.Properties.ContainsKey("unique_name")).Select(c => c.Value).FirstOrDefault()
-                );
-            return Ok(GetToken(user));
+            var username = User.Identity.Name ??
+                User.Claims.Where(c => c.Properties.ContainsKey("unique_name")).Select(c => c.Value).FirstOrDefault();
+
+            if (!String.IsNullOrWhiteSpace(username))
+            {
+                var user = await userManager.FindByNameAsync(username);
+                return Ok(GetToken(user));
+            }
+            else
+            {
+                ModelState.AddModelError("Authentication", "Authentication failed!");
+                return BadRequest(ModelState);
+            }
 
         }
 
