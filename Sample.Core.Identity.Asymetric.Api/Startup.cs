@@ -50,35 +50,33 @@ namespace Sample.Core.Identity.Asymetric.Api
 
             #region Add Authentication
 
-            using (RSA publicRsa = RSA.Create())
+            RSA publicRsa = RSA.Create();
+            publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+                "Keys",
+                 this.Configuration.GetValue<String>("Tokens:PublicKey")
+                 ));
+            RsaSecurityKey signingKey = new RsaSecurityKey(publicRsa);
+
+            services.AddAuthentication(options =>
             {
-                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-                                "Keys",
-                                 this.Configuration.GetValue<String>("Tokens:PublicKey")
-                                 ));
-                RsaSecurityKey signingKey = new RsaSecurityKey(publicRsa);
-
-
-                services.AddAuthentication(options =>
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(config =>
+            {
+                config.RequireHttpsMetadata = false;
+                config.SaveToken = true;
+                config.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                }).AddJwtBearer(config =>
-                {
-                    config.RequireHttpsMetadata = false;
-                    config.SaveToken = true;
-                    config.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        IssuerSigningKey = signingKey,
-                        ValidateAudience = true,
-                        ValidAudience = this.Configuration["Tokens:Audience"],
-                        ValidateIssuer = true,
-                        ValidIssuer = this.Configuration["Tokens:Issuer"],
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true
-                    };
-                });
-            }
+                    IssuerSigningKey = signingKey,
+                    ValidateAudience = true,
+                    ValidAudience = this.Configuration["Tokens:Audience"],
+                    ValidateIssuer = true,
+                    ValidIssuer = this.Configuration["Tokens:Issuer"],
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true
+                };
+            });
+
             #endregion
 
             services.AddMvc();

@@ -43,16 +43,12 @@ namespace Sample.Core.Resource.Asymetric.Api
 
             #region Add Authentication
 
-            RsaSecurityKey signingKey;
-
-            using (RSA publicRsa = RSA.Create())
-            {
-                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-                                "Keys",
-                                 this.Configuration.GetValue<String>("Tokens:PublicKey")
-                                 ));
-                signingKey = new RsaSecurityKey(publicRsa);
-            }
+            RSA publicRsa = RSA.Create();
+            publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+                            "Keys",
+                             this.Configuration.GetValue<String>("Tokens:PublicKey")
+                             ));
+            RsaSecurityKey signingKey = new RsaSecurityKey(publicRsa);
 
             services.AddAuthentication(options =>
             {
