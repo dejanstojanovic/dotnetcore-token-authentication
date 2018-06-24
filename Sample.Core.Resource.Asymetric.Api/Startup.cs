@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Sample.Core.Common.Extensions;
+using Sample.Core.Common.Helpers;
 
 namespace Sample.Core.Resource.Asymetric.Api
 {
@@ -45,34 +46,33 @@ namespace Sample.Core.Resource.Asymetric.Api
 
             RsaSecurityKey signingKey;
 
-            using (RSA publicRsa = RSA.Create())
-            {
-                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+            RSA publicRsa = RsaHelper.PublicKeyFromPemFile(Path.Combine(Directory.GetCurrentDirectory(),
                                 "Keys",
                                  this.Configuration.GetValue<String>("Tokens:PublicKey")
                                  ));
+            
                 signingKey = new RsaSecurityKey(publicRsa);
-            }
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(config =>
-            {
-                config.RequireHttpsMetadata = false;
-                config.SaveToken = true;
-                config.TokenValidationParameters = new TokenValidationParameters()
+                services.AddAuthentication(options =>
                 {
-                    IssuerSigningKey = signingKey,
-                    ValidateAudience = true,
-                    ValidAudience = this.Configuration["Tokens:Audience"],
-                    ValidateIssuer = true,
-                    ValidIssuer = this.Configuration["Tokens:Issuer"],
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).AddJwtBearer(config =>
+                {
+                    config.RequireHttpsMetadata = false;
+                    config.SaveToken = true;
+                    config.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        IssuerSigningKey = signingKey,
+                        ValidateAudience = true,
+                        ValidAudience = this.Configuration["Tokens:Audience"],
+                        ValidateIssuer = true,
+                        ValidIssuer = this.Configuration["Tokens:Issuer"],
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true
+                    };
+                });
+            
             #endregion
 
             services.AddMvc();

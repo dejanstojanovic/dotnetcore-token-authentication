@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Sample.Core.Common.Extensions;
+using Sample.Core.Common.Helpers;
 using Sample.Core.Identity.Data.DbContexts;
 using Sample.Core.Identity.Data.Enities;
 
@@ -50,12 +51,12 @@ namespace Sample.Core.Identity.Asymetric.Api
 
             #region Add Authentication
 
-            using (RSA publicRsa = RSA.Create())
-            {
-                publicRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
+            RSA publicRsa = RsaHelper.PublicKeyFromPemFile(Path.Combine(Directory.GetCurrentDirectory(),
                                 "Keys",
                                  this.Configuration.GetValue<String>("Tokens:PublicKey")
                                  ));
+            
+                
                 RsaSecurityKey signingKey = new RsaSecurityKey(publicRsa);
 
 
@@ -78,7 +79,7 @@ namespace Sample.Core.Identity.Asymetric.Api
                         ValidateIssuerSigningKey = true
                     };
                 });
-            }
+            
             #endregion
 
             services.AddMvc();

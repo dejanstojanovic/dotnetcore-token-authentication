@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Sample.Core.Identity.Asymetric.Api.Models;
 using Sample.Core.Identity.Data.Enities;
 using Sample.Core.Common.Extensions;
+using Sample.Core.Common.Helpers;
 
 namespace Sample.Core.Identity.Asymetric.Api.Controllers
 {
@@ -114,12 +115,10 @@ namespace Sample.Core.Identity.Asymetric.Api.Controllers
         {
             var utcNow = DateTime.UtcNow;
 
-            using (RSA privateRsa = RSA.Create())
-            {
-                privateRsa.FromXmlFile(Path.Combine(Directory.GetCurrentDirectory(),
-                                "Keys",
-                                 this.configuration.GetValue<String>("Tokens:PrivateKey")
-                                 ));
+            using (RSA privateRsa = RsaHelper.PrivateKeyFromPemFile(Path.Combine(Directory.GetCurrentDirectory(),
+                                 "Keys",
+                                  this.configuration.GetValue<String>("Tokens:PrivateKey")
+                                  ))) { 
                 var privateKey = new RsaSecurityKey(privateRsa);
                 SigningCredentials signingCredentials = new SigningCredentials(privateKey, SecurityAlgorithms.RsaSha256);
 
